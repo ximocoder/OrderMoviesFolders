@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter.filedialog import askdirectory
 from tkinter import messagebox
 from stat import *
+import requests
 
 
 class Application(tk.Frame):
@@ -39,10 +40,11 @@ class Application(tk.Frame):
 
     def loadtree(self):
         listdir = os.walk(self.directory)
-        dirbase = "D:\\Movies_Year\\"
+        dirbase = "D:\\MoviesSD_Year\\"
         for x in listdir:
             mode = os.stat(x[0]).st_mode
-            if S_ISDIR(mode) and "VIDEOTECA" not in x[0] and x[0] != self.directory:  # and ("dvdrip" or "xvid" in x[0].lower()):
+            if S_ISDIR(mode) and "VIDEOTECA" not in x[0] and x[0] != self.directory \
+                    and "DVDRIP" in x[0].upper():  # and ("dvdrip" or "xvid" in x[0].lower()):
                 #print(x[0])
                 dr = self.directory
                 if "\\" in x[0]:
@@ -51,8 +53,9 @@ class Application(tk.Frame):
                     y = ""
                 #print("split: " + y)
 
-                if self.CheckDirectoryIsMovie(x[0]):
+                if self.checkdirectoryismovie(x[0]):
                     print(x[0])
+
 
                     if "194" in x[0]:
                         os.rename(x[0], dirbase + "_pre1950_\\" + y)
@@ -75,9 +78,6 @@ class Application(tk.Frame):
                     if "200" in x[0]:
                         os.rename(x[0], dirbase + "2000\\" + y)
 
-                    if "2010" in x[0]:
-                        os.rename(x[0], dirbase + "2010\\" + y)
-
                     if "2010" in x[0] or "2011" in x[0] or "2012" in x[0] \
                             or "2013" in x[0] or "2014" in x[0]:
                         os.rename(x[0], dirbase + "2010\\" + y)
@@ -91,14 +91,21 @@ class Application(tk.Frame):
 
         tk.messagebox._show("Done", "Done")
 
-    def CheckDirectoryIsMovie(self, directory):
+    def checkdirectoryismovie(self, directory):
         ismovie = False
         extensions = [".avi", ".mkv", ".mp4"]
 
         for root, dirnames, filenames in os.walk(directory):
             for check in filenames:
                 if any(extension in check for extension in extensions):
-                    return True
+                    #movieinfo = self.searchmovie("matrix")
+                    ismovie = True
+        return ismovie
+
+    def searchmovie(self, moviename):
+        apiurl = "https://api.douban.com/v2/movie/search?tag=" + moviename
+
+        return requests.get(apiurl).json()
 
 
 root = tk.Tk()
